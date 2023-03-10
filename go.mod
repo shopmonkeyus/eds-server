@@ -6,7 +6,7 @@ require (
 	github.com/shopmonkeyus/go-common v0.0.19
 	github.com/shopmonkeyus/go-datamodel v0.0.9
 	gorm.io/driver/sqlserver v1.4.2
-	gorm.io/gorm v1.24.6
+	gorm.io/gorm v1.24.7-0.20230306060331-85eaf9eeda11
 )
 
 require (
@@ -30,5 +30,5 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
-	gorm.io/driver/postgres v1.4.8
+	gorm.io/driver/postgres v1.5.0
 )
