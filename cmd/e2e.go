@@ -47,6 +47,7 @@ var e2eCmd = &cobra.Command{
 			}
 			url := runner.URL()
 			defer runner.Stop()
+
 			runProvider(logger, url, false, func(provider internal.Provider) error {
 				if err := provider.Migrate(); err != nil {
 					return err

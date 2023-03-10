@@ -71,7 +71,12 @@ func (p *FileProvider) Process(data datatypes.ChangeEventPayload) error {
 	if err != nil {
 		return fmt.Errorf("error converting to json: %s", err)
 	}
-	w.Write(buf)
+
+	_, err = w.Write(buf)
+	if err != nil {
+		return fmt.Errorf("error writing to file: %s", err)
+	}
+
 	w.Flush()
 	p.logger.Trace("processed: %s", fn)
 	return nil

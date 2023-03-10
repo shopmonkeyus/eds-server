@@ -31,6 +31,8 @@ func NewProviderForURL(logger logger.Logger, url string, opts *ProviderOpts) (in
 		return NewGormProvider(logger, url, opts)
 	case "file":
 		return NewFileProvider(logger, url, opts)
+	case "nats":
+		return NewNatsProvider(logger, url, opts)
 	default:
 		return nil, fmt.Errorf("no suitable provider found for url: %s", url)
 	}

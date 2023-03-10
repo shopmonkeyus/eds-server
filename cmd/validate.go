@@ -41,6 +41,7 @@ func processFile(logger logger.Logger, cmd *cobra.Command, name string, url stri
 	}
 	data := object.(datatypes.ChangeEventPayload)
 	logger.Info("loaded: %s with object: %v", fn, object)
+
 	if url != "" {
 		dryRun := mustFlagBool(cmd, "dry-run", false)
 		runProvider(logger, url, dryRun, func(provider internal.Provider) error {
