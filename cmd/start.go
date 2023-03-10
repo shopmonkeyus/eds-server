@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -15,7 +16,6 @@ import (
 	snats "github.com/shopmonkeyus/go-common/nats"
 	"github.com/spf13/cobra"
 )
-
 
 var startCmd = &cobra.Command{
 	Use:   "start",
@@ -75,7 +75,7 @@ var startCmd = &cobra.Command{
 		url := mustFlagString(cmd, "url", false)
 		dryRun := mustFlagBool(cmd, "dry-run", false)
 		embedNats := mustFlagBool(cmd, "embed-nats", false)
-		
+
 		if url == "" && !embedNats {
 			fmt.Printf("error: EDS Server requires either --url or --embed-nats missing\n")
 			os.Exit(1)
@@ -109,6 +109,8 @@ var startCmd = &cobra.Command{
 			return nil
 		}
 
+		var wg sync.WaitGroup
+
 		if embedNats {
 			opts := &server.Options{JetStream: true}
 			ns, err := server.NewServer(opts)
@@ -125,11 +127,20 @@ var startCmd = &cobra.Command{
 
 			logger.Info("Nats server started at url: %s", ns.ClientURL())
 
-			runProvider(logger, ns.ClientURL(), dryRun, runProviderCallback)
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				runProvider(logger, ns.ClientURL(), dryRun, runProviderCallback)
+			}()
 		}
 		if url != "" {
-			runProvider(logger, url, dryRun, runProviderCallback)
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				runProvider(logger, url, dryRun, runProviderCallback)
+			}()
 		}
+		wg.Wait()
 	},
 }
 
