@@ -22,3 +22,31 @@ jobs:
         run: go build -v ./...
       - name: End-to-end
         run: make e2e
+  sign:
+    runs-on: macos-latest
+    needs: build
+    steps:
+      - name: Import Code-Signing Certificates
+        uses: Apple-Actions/import-codesign-certs@v2
+        with:
+          # The certificates in a PKCS12 file encoded as a base64 string
+          p12-file-base64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
+          # The password used to import the PKCS12 file.
+          p12-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+      - name: Install gon via HomeBrew for code signing and app notarization
+        run: |
+          brew tap mitchellh/gon
+          brew install mitchellh/gon/gon
+      - name: Build and code-sign the app
+        env:
+          CI: "true"
+          GIT_SHA: "${{ steps.sha.outputs.sha }}"
+          AC_PASSWORD: "${{ secrets.AC_PASSWORD }}"
+        run: |
+          gon --version
+          go run -tags sign . sign --dir ./output
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: output/*
