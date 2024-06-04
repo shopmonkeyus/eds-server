@@ -11,7 +11,7 @@ require (
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db
 	github.com/nats-io/nats-server/v2 v2.10.16
 	github.com/schollz/progressbar/v3 v3.14.1
-	github.com/shirou/gopsutil/v3 v3.23.11
+	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/shopmonkeyus/go-common v0.0.53
 	github.com/snowflakedb/gosnowflake v1.10.1
 	github.com/stretchr/testify v1.9.0
@@ -71,7 +71,7 @@ require (
 	github.com/tklauser/numcpus v0.7.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
-	github.com/yusufpapurcu/wmi v1.2.3 // indirect
+	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	golang.org/x/exp v0.0.0-20231219180239-dc181d75b848 // indirect
 	golang.org/x/mod v0.14.0 // indirect
