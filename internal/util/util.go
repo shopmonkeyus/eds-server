@@ -3,6 +3,7 @@ package util
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
 
 	"regexp"
 	"sort"
@@ -154,6 +155,27 @@ func TryConvertJson(fieldType string, val interface{}) (interface{}, error) {
 		return string(jsonData), nil
 
 	}
+	//Handle floats correctly
+
+	if fieldType == "Float" {
+		// Parse the value into a string format
+		valStr := fmt.Sprintf("%v", val)
+		// Create a new big.Float and parse the string value with base 10 and precision 64
+		floatVal, _, err := big.ParseFloat(valStr, 10, 0, big.ToNearestEven)
+		if err != nil {
+			return val, nil
+		}
+
+		float64Val, accuracy := floatVal.Float64()
+
+		if accuracy == big.Exact {
+			return float64Val, nil
+		}
+
+		return valStr, nil
+
+	}
+
 	return val, nil
 }
 

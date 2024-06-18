@@ -155,11 +155,19 @@ func (p *SnowflakeProvider) Import(dataMap map[string]interface{}, tableName str
 		return err
 	}
 	p.logger.Debug("with sql: %s and values: %v", sql, values)
-	_, err = p.db.Exec(sql, values...)
+	result, err := p.db.Exec(sql, values...)
 	if err != nil {
 		return err
 	}
+	// Check how many rows were affected
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		p.logger.Error("Failed to retrieve rows affected: %v", err)
+	}
 
+	if rowsAffected == 0 {
+		p.logger.Error("No rows were inserted from query.")
+	}
 	return nil
 }
 
@@ -217,7 +225,7 @@ func (p *SnowflakeProvider) getSQL(c datatypes.ChangeEventPayload, m dm.Model) (
 		isFirstColumn := true
 		if shouldCreate {
 			for _, field := range m.Fields {
-				// check if field is in payload
+
 				if _, ok := data[field.Name]; !ok {
 					continue
 				}

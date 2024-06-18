@@ -85,7 +85,11 @@ func runProviders(logger logger.Logger, urls []string, schemaModelCache *map[str
 		files, err := util.ListDir(opts.Importer)
 		//Can potentially run on goroutines to process multiple files at once, but performance seems ok right now
 		for _, file := range files {
-			processFile(logger, file, providers, nc)
+			err = processFile(logger, file, providers, nc)
+			if err != nil {
+				logger.Error("error processing file: %s", err)
+				os.Exit(1)
+			}
 		}
 
 		if err != nil {
@@ -141,7 +145,10 @@ func processFile(logger logger.Logger, fileName string, providers []internal.Pro
 
 		for _, provider := range providers {
 
-			provider.Import(dataMap, tableName, nc)
+			err = provider.Import(dataMap, tableName, nc)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
