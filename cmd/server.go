@@ -100,9 +100,15 @@ var serverCmd = &cobra.Command{
 				logger.Error("error: decoding JWT claims: %s", err)
 				os.Exit(1)
 			}
-			companyIDs = strings.Split(claim.Audience, ",")
+			allowedSubs := claim.Sub.Allow
+			for _, sub := range allowedSubs {
+				companyID := util.ExtractCompanyIdFromSubscription(sub)
+				if companyID != "" {
+					companyIDs = append(companyIDs, companyID)
+				}
+			}
 			if len(companyIDs) == 0 {
-				logger.Error("error: invalid JWT claim. missing audience")
+				logger.Error("error: issue parsing company ID from JWT claims. Ensure the JWT has the correct permissions.")
 				os.Exit(1)
 			}
 			companyName = claim.Name
@@ -162,7 +168,7 @@ var serverCmd = &cobra.Command{
 			}
 			defer processor.Stop()
 
-			logger.Trace("starting message processor to read from local nats")
+			logger.Trace("starting message processor")
 			if err := processor.Start(); err != nil {
 				return fmt.Errorf("processor start: %s", err)
 			}
@@ -211,7 +217,6 @@ var serverCmd = &cobra.Command{
 
 		runProviders(logger, urls, &schemaModelVersionCache, dryRun, verbose, importer, runProvidersCallback, nc)
 
-		<-csys.CreateShutdownChannel()
 		logger.Info("stopped nats provider")
 
 		sctx, scancel := context.WithTimeout(ctx, time.Second*15)

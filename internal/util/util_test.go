@@ -56,4 +56,47 @@ func TestMaskConnectionString(t *testing.T) {
 			}
 		})
 	}
+
+}
+
+func TestExtractCompanyIdFromSubscription(t *testing.T) {
+	tests := []struct {
+		name string
+		sub  string
+		want string
+	}{
+		{
+			name: "Valid subscription",
+			sub:  "dbchange.*.*.1000a2000d1a72cc5ce101bb.>",
+			want: "1000a2000d1a72cc5ce101bb",
+		},
+		{
+			name: "Invalid subscription with insufficient parts",
+			sub:  "dbchange.*.*.",
+			want: "",
+		},
+		{
+			name: "Non-matching subscription pattern",
+			sub:  "_INBOX.>",
+			want: "",
+		},
+		{
+			name: "Empty subscription string",
+			sub:  "",
+			want: "",
+		},
+		{
+			name: "Subscription with different pattern but enough parts",
+			sub:  "something.else.with.many.parts",
+			want: "many",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ExtractCompanyIdFromSubscription(tt.sub); got != tt.want {
+				t.Errorf("ExtractCompanyIdFromSubscription() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

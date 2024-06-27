@@ -211,7 +211,6 @@ func (p *MessageProcessor) callback(ctx context.Context, payload []byte, msg *na
 func (p *MessageProcessor) Start() error {
 	p.logger.Trace("message processor starting")
 	p.logger.Trace("starting message processor for company ids: %s", p.companyID)
-	p.logger.Trace("Message Processor: %+v", p)
 	for _, companyID := range p.companyID {
 		name := fmt.Sprintf("%seds-server-%s", p.consumerPrefix, companyID)
 		p.logger.Trace("starting message processor for consumer: %s and company id: %s", name, companyID)
@@ -224,7 +223,7 @@ func (p *MessageProcessor) Start() error {
 			c   snats.Subscriber
 			err error
 		)
-		p.logger.Trace("consumerStartTime: %v", p.consumerStartTime)
+
 		if p.consumerStartTime.IsZero() {
 			p.logger.Trace("creating consumer with New delivery policy")
 			c, err = snats.NewExactlyOnceConsumer(p.logger, p.js, "dbchange", name, "dbchange.*.*."+companyID+".*.PUBLIC.>", p.callback,
@@ -234,9 +233,14 @@ func (p *MessageProcessor) Start() error {
 			if err != nil {
 				return err
 			}
+			if len(p.companyID) > 5 {
+				//Add some delay to allow the consumer to start up
+				//Just a band-aid fix but this seems to allow start-up of around 30+ companies
+				time.Sleep(10 * time.Second)
+			}
 		} else {
 			p.logger.Trace("creating consumer with StartTime delivery policy")
-
+			p.logger.Trace("consumerStartTime: %v", p.consumerStartTime)
 			c, err = snats.NewExactlyOnceConsumer(p.logger, p.js, "dbchange", name, "dbchange.*.*."+companyID+".*.PUBLIC.>", p.callback,
 				snats.WithExactlyOnceContext(p.context),
 				snats.WithExactlyOnceReplicas(1), // TODO: make configurable for testing

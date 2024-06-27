@@ -207,3 +207,11 @@ func LoadConfig(configFile string) *server.Options {
 	}
 	return opts
 }
+
+func ExtractCompanyIdFromSubscription(sub string) string {
+	parts := strings.Split(sub, ".")
+	if len(parts) > 3 {
+		return parts[3]
+	}
+	return ""
+}
