@@ -1,20 +1,24 @@
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/BurntSushi/toml"
 
 	"github.com/shopmonkeyus/eds-server/internal/util"
 	"github.com/spf13/cobra"
 )
 
 type enrollTokenData struct {
-	Token    string `json:"token"`
-	ServerID string `json:"serverId"`
+	Token    string `json:"token" toml:"server_id`
+	ServerID string `json:"serverId" toml:"server_id"`
 }
 
 type enrollResponse struct {
@@ -81,16 +85,19 @@ var enrollCmd = &cobra.Command{
 			logger.Fatal("failed to start enroll: %s", enrollResp.Message)
 		}
 
-		tokenFile := filepath.Join(dataDir, "token.json")
+		var buf bytes.Buffer
+		if err := toml.NewEncoder(&buf).Encode(enrollResp.Data); err != nil {
+			log.Fatal(err)
+		}
+
+		tokenFile := filepath.Join(dataDir, "config.toml")
 		file, err := os.Create(tokenFile)
 		if err != nil {
 			logger.Fatal("failed to create token file: %w", err)
 		}
-		jsonData, err := json.Marshal(enrollResp.Data)
-		if err != nil {
-			logger.Fatal("Error converting to JSON: %v", err)
+		if err := os.WriteFile(tokenFile, buf.Bytes(), 0644); err != nil {
+			log.Fatal(err)
 		}
-		_, err = file.Write(jsonData)
 		if err != nil {
 			logger.Fatal("failed to write to token file: %w", err)
 		}
@@ -107,5 +114,5 @@ func init() {
 	rootCmd.AddCommand(enrollCmd)
 	enrollCmd.Flags().String("api-url", "", "the for testing again preview environment")
 	enrollCmd.Flags().MarkHidden("api-url")
-	enrollCmd.Flags().String("data-dir", cwd, "the data directory for storing logs and other data")
+	enrollCmd.Flags().String("data-dir", filepath.Join(cwd, "datadir"), "the data directory for storing logs and other data")
 }

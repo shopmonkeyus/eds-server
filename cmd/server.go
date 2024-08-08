@@ -47,6 +47,7 @@ type sessionStart struct {
 	MachineId string     `json:"machineId"`
 	OsInfo    any        `json:"osinfo"`
 	Driver    driverMeta `json:"driver"`
+	ServerID  string     `json:"serverId"`
 }
 
 type edsSession struct {
@@ -94,7 +95,7 @@ func writeCredsToFile(data string, filename string) error {
 	return nil
 }
 
-func sendStart(logger logger.Logger, apiURL string, apiKey string, driverUrl string) (*edsSession, error) {
+func sendStart(logger logger.Logger, apiURL string, apiKey string, driverUrl string, serverId string) (*edsSession, error) {
 	var body sessionStart
 	ipaddress, err := util.GetLocalIP()
 	if err != nil {
@@ -117,6 +118,7 @@ func sendStart(logger logger.Logger, apiURL string, apiKey string, driverUrl str
 	body.Hostname = hostname
 	body.Version = Version
 	body.OsInfo = osinfo
+	body.ServerID = serverId
 
 	driverMeta, err := internal.GetDriverMetadataForURL(driverUrl)
 	if err != nil {
@@ -547,14 +549,25 @@ var serverCmd = &cobra.Command{
 		}
 
 		apiurl := mustFlagString(cmd, "api-url", true)
-		apikey := mustFlagString(cmd, "api-key", true)
 		driverURL := mustFlagString(cmd, "url", true)
 		server := mustFlagString(cmd, "server", true)
 		dataDir := getDataDir(cmd, logger)
+		apikeyFlag := mustFlagString(cmd, "api-key", false)
+		var apikey string
+		var serverId string
+
+		if apikeyFlag != "" {
+			apikey = apikeyFlag
+		} else {
+			tokenData := readTokenFile(dataDir, logger)
+			apikey = tokenData.Token
+			serverId = tokenData.ServerID
+		}
 
 		if cmd.Flags().Changed("api-url") {
 			logger.Info("using alternative API url: %s", apiurl)
 		} else {
+
 			url, err := util.GetAPIURLFromJWT(apikey)
 			if err != nil {
 				logger.Fatal("invalid API key. %s", err)
@@ -753,7 +766,7 @@ var serverCmd = &cobra.Command{
 			if failures >= maxFailures {
 				logger.Fatal("too many failures after %d attempts, exiting", failures)
 			}
-			session, err := sendStart(logger, apiurl, apikey, driverURL)
+			session, err := sendStart(logger, apiurl, apikey, driverURL, serverId)
 			if err != nil {
 				logger.Fatal("failed to send session start: %s", err)
 			}

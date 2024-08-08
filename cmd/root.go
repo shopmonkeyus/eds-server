@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	glog "log"
 	"net/http"
@@ -37,6 +38,28 @@ func mustFlagString(cmd *cobra.Command, name string, required bool) string {
 		os.Exit(3)
 	}
 	return val
+}
+
+type EnrollTokenData struct {
+	Token    string `json:"token"`
+	ServerID string `json:"serverId"`
+}
+
+func readTokenFile(dataDir string, logger logger.Logger) EnrollTokenData {
+	tokenFile := filepath.Join(dataDir, "token.json")
+	if !util.Exists(tokenFile) {
+		logger.Fatal("token file does not exist: %s", tokenFile)
+	}
+	if !util.Exists(tokenFile) {
+		logger.Fatal("token file does not exist: %s", tokenFile)
+	}
+	buf, err := os.ReadFile(tokenFile)
+	if err != nil {
+		logger.Fatal("error reading token file: %s", err)
+	}
+	var tokenData EnrollTokenData
+	err = json.Unmarshal(buf, &tokenData)
+	return tokenData
 }
 
 func mustFlagInt(cmd *cobra.Command, name string, required bool) int {
