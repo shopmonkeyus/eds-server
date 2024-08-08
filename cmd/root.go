@@ -188,6 +188,10 @@ func setHTTPHeader(req *http.Request, apiKey string) {
 	}
 }
 
+func getRequestID(resp *http.Response) string {
+	return resp.Header.Get("X-Request-Id")
+}
+
 func getDataDir(cmd *cobra.Command, logger logger.Logger) string {
 	dataDir := mustFlagString(cmd, "data-dir", true)
 	dataDir, _ = filepath.Abs(filepath.Clean(dataDir))
