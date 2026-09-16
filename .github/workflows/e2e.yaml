@@ -21,7 +21,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.25
+          go-version: 1.27
       - name: Start containers
         run: docker compose up --force-recreate -d --quiet-pull
       - name: Wait for S3 bucket
